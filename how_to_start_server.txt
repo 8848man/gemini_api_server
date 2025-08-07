@@ -1,0 +1,7 @@
+서버 실행하는 방법
+
+# 가상환경 활성화 (PowerShell)
+.\venv\Scripts\Activate.ps1
+
+# FastAPI 서버 실행
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
