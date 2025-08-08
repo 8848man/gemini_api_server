@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Path, Query, Request, status
@@ -6,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Path, Query, Request, status
 from src.models.common import APIResponse, ErrorResponse
 from src.models.dictionary import DictionaryResponse
 from src.services.dictionary_service import dictionary_service
+from src.services.firestore_service import firestore_service
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +48,27 @@ async def lookup_word(
         # 요청 로깅
         client_id = getattr(request.state, "user", {}).get("api_key", "unknown")
         logger.info(f"Dictionary lookup request from client: {client_id}, word: {word}")
-        
+
+        firestore_cached_word_data = await firestore_service.get_word_data(word)
+
+        if firestore_cached_word_data:
+            logger.info(f"Found word data in Firestore for word: {word}")
+            return APIResponse(
+                success=True,
+                data=firestore_cached_word_data,
+                message="Word definition retrieved from Firestore cache"
+            )
+
         # 단어 조회
         result = await dictionary_service.lookup_word(word)
         
         if result.success:
             logger.info(f"Dictionary lookup successful for word: {word}")
+            logger.info(f"saving firestore master_voca: {word}")
+
+            # AI를 통해 생성된 단어를 master voca 컬랙션에 저장
+            asyncio.create_task(firestore_service.save_word_data(word, result.data.dict()))
+            
             return APIResponse(
                 success=True,
                 data=result.data.dict() if result.data else None,

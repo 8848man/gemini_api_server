@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     # Google Gemini API
     GEMINI_API_KEY: str = config("GEMINI_API_KEY", default="")
-    GEMINI_MODEL: str = config("GEMINI_MODEL", default="gemini-pro")
+    GEMINI_MODEL: str = config("GEMINI_MODEL", default="gemini-2.0-flash")
 
     # Redis Configuration
     REDIS_URL: str = config("REDIS_URL", default="redis://localhost:6379/0")

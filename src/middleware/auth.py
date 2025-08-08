@@ -10,14 +10,23 @@ from src.services.firebase_service import verify_firebase_token
 logger = logging.getLogger(__name__)
 
 # 인증이 필요없는 경로
-PUBLIC_PATHS = {
-    "/",
+# PUBLIC_PATHS = {
+#     "/",
+#     "/docs",
+#     "/redoc",
+#     "/openapi.json",
+#     "/api/v1/health",
+#     "/metrics",
+# }
+
+PUBLIC_PATH_PREFIXES = [
     "/docs",
     "/redoc",
     "/openapi.json",
     "/api/v1/health",
     "/metrics",
-}
+    "/flutter_service_worker.js",
+]
 
 class AuthMiddleware(BaseHTTPMiddleware):
     """API 키 및 JWT 토큰 인증 미들웨어"""
@@ -25,9 +34,18 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         path = request.url.path
 
-        # 공개 경로는 인증 생략
-        if path in PUBLIC_PATHS or path.startswith("/static"):
+        # OPTIONS 요청은 무조건 인증 생략
+        if request.method == "OPTIONS":
             return await call_next(request)
+
+        # 공개 경로는 인증 생략
+        # if path in PUBLIC_PATHS or path.startswith("/static"):
+        #     return await call_next(request)
+        # 공개 경로는 인증 생략
+        if any(path == p or path.startswith(p + "/") for p in PUBLIC_PATH_PREFIXES):
+            return await call_next(request)
+
+
 
         # API 키 또는 JWT 토큰 확인
         auth_header = request.headers.get("Authorization")
