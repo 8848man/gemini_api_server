@@ -14,6 +14,7 @@ class DictionaryEntry(BaseModel):
     word: str = Field(..., description="영단어")
     meanings: List[str] = Field(..., description="단어 뜻 목록")
     level: EducationLevel = Field(..., description="교육 수준 태그")
+    tags: List[str] = Field(default=[], description="관련 태그")
     synonyms: List[str] = Field(default=[], description="유의어 목록")
     antonyms: List[str] = Field(default=[], description="반의어 목록")
     example_sentence: str = Field(..., description="영어 예문")

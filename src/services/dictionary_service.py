@@ -26,7 +26,7 @@ class DictionaryService:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=settings.GEMINI_API_KEY)
-                self.gemini_model = GenerativeModel(model_name="gemini-pro")
+                self.gemini_model = GenerativeModel(model_name=settings.GEMINI_MODEL)
                 logger.info("Dictionary service initialized with Gemini")
             except Exception as e:
                 logger.warning(f"Failed to initialize Gemini for dictionary: {e}")
@@ -82,7 +82,7 @@ class DictionaryService:
         """캐시된 단어 정보 조회"""
         cache_key = f"dict:{word}"
         cached_data = await redis_service.get(cache_key)
-        
+
         if cached_data:
             try:
                 return DictionaryEntry(**cached_data)
@@ -104,7 +104,7 @@ class DictionaryService:
 
         try:
             prompt = self._build_dictionary_prompt(word)
-            
+
             # Gemini API 호출
             response = await self._call_gemini_for_dictionary(prompt)
             
@@ -120,29 +120,75 @@ class DictionaryService:
     def _build_dictionary_prompt(self, word: str) -> str:
         """사전 생성용 프롬프트 구성"""
         return f"""
-영단어 "{word}"에 대한 상세한 사전 정보를 JSON 형식으로 제공해주세요.
+영단어 "{word}"에 대한 상세한 사전 정보를 **순수 JSON 오브젝트** 형식으로만 출력해 주세요.  
+반드시 JSON 문법만 포함하며, 다른 텍스트, 설명, 주석, 또는 인사말은 포함하지 마세요.
+또, 현재 응답에 사용된 AI 버전도 포함해주세요.
 
-다음 형식으로 응답해주세요:
+다음 형식으로 정확히 응답하세요:
 {{
-    "meanings": ["주요 의미1", "주요 의미2", "주요 의미3"],
-    "level": "초등|중등|고등",
-    "synonyms": ["유의어1", "유의어2"],
-    "antonyms": ["반의어1", "반의어2"],
-    "example_sentence": "영어 예문",
-    "example_translation": "예문 한국어 번역",
-    "pronunciation": "발음기호",
-    "part_of_speech": "품사"
+  "meanings": ["주요 의미1", "주요 의미2", "주요 의미3"],
+  "level": "초등|중등|고등|토익|토플",
+  "tags": ["토익", "고등", "일상", "음식", "행동", "동사"],
+  "synonyms": ["유의어1", "유의어2"],
+  "antonyms": ["반의어1", "반의어2"],
+  "example_sentence": "영어 예문",
+  "example_translation": "예문 한국어 번역",
+  "pronunciation": "발음기호",
+  "part_of_speech": "품사"
+  "gemini_version" : "현재 응답에 사용된 AI 버전"
 }}
 
-요구사항:
-1. 한국 교육과정 기준으로 초등/중등/고등 수준 분류
-2. 가장 일반적이고 중요한 의미 3개 이하
-3. 실용적이고 자연스러운 예문
-4. 정확한 한국어 번역
-5. JSON 형식만 응답 (다른 텍스트 없이)
+예시:  
+{{
+  "meanings": ["높은", "고급의", "고음의"],
+  "level": "중등",
+  "tags": ["중등", "토익", "형용사" ... etc]
+  "synonyms": ["tall", "lofty"],
+  "antonyms": ["low", "short"],
+  "example_sentence": "The mountain is very high.",
+  "example_translation": "그 산은 매우 높다.",
+  "pronunciation": "haɪ",
+  "part_of_speech": "형용사"
+  "gemini_version" : "Gemini 2.0 Flash"
+}}
 
 단어: {word}
 """
+#         return f"""
+# 영단어 "{word}"에 대한 상세한 사전 정보를 JSON 형식으로 제공해주세요.
+#
+# 다음 형식으로 응답해주세요:
+# {{
+#     "meanings": ["주요 의미1", "주요 의미2", "주요 의미3"],
+#     "level": "초등|중등|고등",
+#     "synonyms": ["유의어1", "유의어2"],
+#     "antonyms": ["반의어1", "반의어2"],
+#     "example_sentence": "영어 예문",
+#     "example_translation": "예문 한국어 번역",
+#     "pronunciation": "발음기호",
+#     "part_of_speech": "품사"
+# }}
+#
+# 요구사항:
+# 1. 한국 교육과정 기준으로 초등/중등/고등 수준 분류
+# 2. 가장 일반적이고 중요한 의미 3개 이하
+# 3. 실용적이고 자연스러운 예문
+# 4. 정확한 한국어 번역
+# 5. JSON 형식만 응답 (다른 텍스트 없이)
+# 예시 :
+# {{
+#   "meanings": ["높은", "고급의", "고음의"],
+#   "level": "중등",
+#   "synonyms": ["tall", "lofty"],
+#   "antonyms": ["low", "short"],
+#   "example_sentence": "The mountain is very high.",
+#   "example_translation": "그 산은 매우 높다.",
+#   "pronunciation": "haɪ",
+#   "part_of_speech": "형용사"
+# }}
+#
+# 단어: {word}
+# """
 
     async def _call_gemini_for_dictionary(self, prompt: str):
         """사전용 Gemini API 호출"""
