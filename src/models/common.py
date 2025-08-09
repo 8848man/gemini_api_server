@@ -4,12 +4,19 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
+from pydantic import BaseModel, Field
+from datetime import datetime
+
 class APIResponse(BaseModel):
     success: bool = Field(..., description="API 호출 성공 여부")
     data: Optional[Any] = Field(None, description="응답 데이터")
     message: str = Field(default="", description="응답 메시지")
     timestamp: datetime = Field(default_factory=datetime.now, description="응답 시간")
 
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
 class ErrorResponse(BaseModel):
     success: bool = Field(default=False, description="API 호출 성공 여부")

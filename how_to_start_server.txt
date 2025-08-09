@@ -3,5 +3,8 @@
 # 가상환경 활성화 (PowerShell)
 .\venv\Scripts\Activate.ps1
 
+# firebase firestore 인증(firebase firestore 인증 에러시)
+gcloud auth application-default login
+
 # FastAPI 서버 실행
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
