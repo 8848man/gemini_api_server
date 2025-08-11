@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = config("LOG_LEVEL", default="INFO")
     LOG_FILE: str = config("LOG_FILE", default="logs/app.log")
 
+    # Firebase 인증 경로
+    GOOGLE_APPLICATION_CREDENTIALS: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = True
