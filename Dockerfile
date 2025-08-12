@@ -46,7 +46,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # 헬스체크 스크립트 생성
-RUN echo '#!/bin/sh\ncurl -f http://localhost:8000/api/v1/health || exit 1' > /app/healthcheck.sh && \
+RUN echo '#!/bin/sh\ncurl -f http://localhost:8080/api/v1/health || exit 1' > /app/healthcheck.sh && \
     chmod +x /app/healthcheck.sh && \
     chown appuser:appuser /app/healthcheck.sh
 
@@ -54,14 +54,14 @@ RUN echo '#!/bin/sh\ncurl -f http://localhost:8000/api/v1/health || exit 1' > /a
 USER appuser
 
 # 포트 노출 (로컬 개발용, Cloud Run 배포시 PORT 환경변수 이용 권장)
-EXPOSE 8000
+EXPOSE 8080
 
 # 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD ["/app/healthcheck.sh"]
 
 # 앱 실행 커맨드 (uvicorn 직접 실행)
-# CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
 CMD ["sh", "-c", "python -m uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
 
 # ---------- Development stage ----------
@@ -85,4 +85,4 @@ USER appuser
 VOLUME ["/app/src", "/app/tests"]
 
 # 개발 모드(핫 리로드)로 실행
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]

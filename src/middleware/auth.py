@@ -38,6 +38,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             return await call_next(request)
 
+        if request.url.path == "/favicon.ico":
+            return await call_next(request)
+
         # 공개 경로는 인증 생략
         # if path in PUBLIC_PATHS or path.startswith("/static"):
         #     return await call_next(request)
