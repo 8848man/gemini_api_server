@@ -78,18 +78,38 @@ class DictionaryService:
         pattern = r"^[a-zA-Z\-']+$"
         return bool(re.match(pattern, word))
 
+    #async def _get_cached_word(self, word: str) -> Optional[DictionaryEntry]:
+    #     """캐시된 단어 정보 조회"""
+    #     cache_key = f"dict:{word}"
+    #     cached_data = await redis_service.get(cache_key)
+    #
+    #     if cached_data:
+    #         try:
+    #             return DictionaryEntry(**cached_data)
+    #         except Exception as e:
+    #             logger.warning(f"Invalid cached data for word {word}: {e}")
+    #             await redis_service.delete(cache_key)
+    #
+    #     return None
     async def _get_cached_word(self, word: str) -> Optional[DictionaryEntry]:
         """캐시된 단어 정보 조회"""
         cache_key = f"dict:{word}"
-        cached_data = await redis_service.get(cache_key)
+        try:
+            cached_data = await redis_service.get(cache_key)
+        except Exception as e:
+            logger.error(f"Redis error while getting cache for {word}: {e}")
+            # Redis 오류 시 캐시를 못 읽었으니 None 리턴해서 정상 흐름 유지
+            return None
 
         if cached_data:
             try:
                 return DictionaryEntry(**cached_data)
             except Exception as e:
                 logger.warning(f"Invalid cached data for word {word}: {e}")
-                await redis_service.delete(cache_key)
-        
+                try:
+                    await redis_service.delete(cache_key)
+                except Exception as e2:
+                    logger.error(f"Failed to delete invalid cache for {word}: {e2}")
         return None
 
     async def _cache_word(self, word: str, entry: DictionaryEntry) -> None:
