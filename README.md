@@ -38,8 +38,6 @@ This server is designed for educational and enterprise applications requiring AI
 
 ```mermaid
 graph TB
-
-   graph TB
     Client[Client Applications] --> Hosting[Google Cloud Hosting] --> Nginx[Nginx Reverse Proxy]
     Nginx --> API[FastAPI Application]
     API --> Redis[(Redis Cache)]
