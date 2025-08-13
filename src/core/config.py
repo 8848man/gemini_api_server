@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # API Configuration
     API_HOST: str = config("API_HOST", default="0.0.0.0")
-    API_PORT: int = config("API_PORT", default=8000, cast=int)
+    API_PORT: int = config("API_PORT", default=8080, cast=int)
     API_WORKERS: int = config("API_WORKERS", default=1, cast=int)
     DEBUG: bool = config("DEBUG", default=False, cast=bool)
 
@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     JWT_EXPIRATION_HOURS: int = config("JWT_EXPIRATION_HOURS", default=24, cast=int)
 
     # Google Gemini API
-    GEMINI_API_KEY: str = config("GEMINI_API_KEY", default="")
+    # GEMINI_API_KEY: str = config("GEMINI_API_KEY", default="")
+    # 환경변수를 우선 적용하기위해 설정
+    GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = config("GEMINI_MODEL", default="gemini-2.0-flash")
 
     # Redis Configuration

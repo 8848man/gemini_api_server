@@ -1,3 +1,5 @@
+import os
+import json
 import firebase_admin
 from firebase_admin import credentials, auth
 from pathlib import Path
@@ -9,28 +11,6 @@ settings = get_settings()
 
 firebase_app = None
 
-
-# def initialize_firebase():
-#     global firebase_app
-#
-#     if firebase_admin._apps:
-#         logger.info("Firebase already initialized.")
-#         return
-#
-#     try:
-#         cred_path = Path("config/firebase/service-account.json")
-#         if not cred_path.exists():
-#             raise FileNotFoundError(f"Firebase credential not found: {cred_path}")
-#
-#         cred = credentials.Certificate(cred_path)
-#         firebase_app = firebase_admin.initialize_app(cred)
-#
-#         logger.info("Firebase initialized successfully.")
-#
-#     except Exception as e:
-#         logger.exception(f"Failed to initialize Firebase: {e}")
-#         raise  # 앱 시작을 중단시킬지, soft fail할지는 상황에 따라 결정
-
 def initialize_firebase():
     global firebase_app
 
@@ -39,18 +19,30 @@ def initialize_firebase():
         return
 
     try:
-        cred_path = settings.GOOGLE_APPLICATION_CREDENTIALS
+        firebase_key_json = os.getenv("FIREBASE_KEY_JSON").strip()
 
-        if cred_path:  # 로컬: .env 파일 기반
-            cred_path = Path(cred_path)
-            if not cred_path.exists():
-                raise FileNotFoundError(f"Firebase credential not found: {cred_path}")
-            cred = credentials.Certificate(str(cred_path))
+        if firebase_key_json:
+            logger.info("Initializing Firebase Admin SDK with JSON string from environment variable.")
+            key_info = json.loads(firebase_key_json)
+            cred = credentials.Certificate(key_info)
             firebase_app = firebase_admin.initialize_app(cred)
-            logger.info("Firebase initialized with service account file.")
-        else:  # GCP: ADC 기본 인증
-            firebase_app = firebase_admin.initialize_app()
-            logger.info("Firebase initialized with Application Default Credentials.")
+            logger.info("Firebase Admin initialized from environment variable JSON.")
+        else:
+            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            logger.info(f"Firebase credential path: {cred_path}")
+
+            if cred_path:
+                cred_path = Path(cred_path)
+                if not cred_path.exists():
+                    raise FileNotFoundError(f"Firebase credential not found: {cred_path}")
+                cred = credentials.Certificate(str(cred_path))
+                firebase_app = firebase_admin.initialize_app(cred)
+                logger.info("Firebase Admin initialized with service account file.")
+            else:
+                firebase_app = firebase_admin.initialize_app()
+                logger.info("Firebase Admin initialized with Application Default Credentials.")
+
+        return firebase_app
 
     except Exception as e:
         logger.exception(f"Failed to initialize Firebase: {e}")
