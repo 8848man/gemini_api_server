@@ -16,8 +16,11 @@ gcloud auth application-default login
 # firebase firestore 인증(firebase firestore 인증 에러시)
 gcloud auth application-default login
 
-# firebase Key 설정
+# firebase Key 설정(path 기반)
 $env:FIREBASE_KEY_JSON = Get-Content -Raw -Path "config/firebase/service-account.json"
+
+# firebase Key 설정(json 기반)
+$env:FIREBASE_KEY_JSON = '{service_json}'
 
 # Gemini Key 설정
 $env:GEMINI_API_KEY = "GEMINI_API_KEY"
@@ -37,9 +40,19 @@ docker build -t gcr.io/level-harbor-468300-g9/gemini-api:latest-1 .
 # 도커 이미지 푸쉬 전 로컬 테스트
 docker run -e PORT=8080 -p 8080:8080 gcr.io/level-harbor-468300-g9/gemini-api:latest-1
 
+# FIREBASE_KEY_JSON을 도커 환경변수에 넣기 위해 줄바꿈등 필터링
+
+# 도커 이미지 푸쉬 전 로컬 테스트 (환경변수 포함)
+docker run -e FIREBASE_KEY_JSON="${env:FIREBASE_KEY_JSON}" -e GEMINI_API_KEY="$env:GEMINI_API_KEY" -p 8080:8080 gcr.io/level-harbor-468300-g9/gemini-api:latest-1
+
 # 도커 이미지 푸시(구글 클라우드로)
 docker push gcr.io/level-harbor-468300-g9/gemini-api:latest-1
 
-
 # 푸쉬된 이미지를 배포
 gcloud run deploy gemini-api --image gcr.io/level-harbor-468300-g9/gemini-api:latest-1 --platform managed --region asia-northeast3 --allow-unauthenticated
+
+# 구글 secret manager에 json 파일 등록
+gcloud secrets create YOUR_SECRET_NAME --data-file=./config/firebase/service-account.json
+
+# 푸쉬된 이미지를 클라우드 secret manager를 활용해 배포
+gcloud run deploy gemini-api --image gcr.io/level-harbor-468300-g9/gemini-api:latest-1 --platform managed --region asia-northeast3 --allow-unauthenticated --set-secrets FIREBASE_KEY_JSON=FIREBASE_KEY_JSON:latest

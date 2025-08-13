@@ -19,8 +19,7 @@ def initialize_firebase():
         return
 
     try:
-        firebase_key_json = os.getenv("FIREBASE_KEY_JSON").strip()
-
+        firebase_key_json = os.getenv("FIREBASE_KEY_JSON", "").strip()
         if firebase_key_json:
             logger.info("Initializing Firebase Admin SDK with JSON string from environment variable.")
             key_info = json.loads(firebase_key_json)

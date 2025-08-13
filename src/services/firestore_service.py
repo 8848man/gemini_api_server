@@ -14,8 +14,7 @@ class FirestoreService:
     def __init__(self):
         try:
             # 환경변수에서 JSON 문자열 읽기
-            firebase_key_json = os.getenv("FIREBASE_KEY_JSON").strip()
-            
+            firebase_key_json = os.getenv("FIREBASE_KEY_JSON", "").strip()
             # 프로젝트 id 선언
             project_id : str = "machat-f1450"
             if firebase_key_json:

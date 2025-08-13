@@ -39,8 +39,9 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: List[str] = config(
         "ALLOWED_ORIGINS",
-        default="http://localhost:3000,http://127.0.0.1:3000",
-        cast=lambda v: [s.strip() for s in v.split(",")],
+        default=["*"],
+        # default="http://localhost:3000,http://127.0.0.1:3000",
+        # cast=lambda v: [s.strip() for s in v.split(",")],
     )
     ALLOWED_METHODS: List[str] = config(
         "ALLOWED_METHODS",
