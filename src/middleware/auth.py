@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 PUBLIC_PATH_PREFIXES = [
     "/docs",
     "/redoc",
+    "/favicon.ico",
     "/openapi.json",
     "/api/v1/health",
     "/metrics",

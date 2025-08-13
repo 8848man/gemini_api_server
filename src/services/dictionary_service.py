@@ -113,9 +113,13 @@ class DictionaryService:
         return None
 
     async def _cache_word(self, word: str, entry: DictionaryEntry) -> None:
-        """단어 정보 캐시 저장"""
-        cache_key = f"dict:{word}"
-        await redis_service.set(cache_key, entry.dict(), expire=86400)  # 24시간
+
+        try:
+            """단어 정보 캐시 저장"""
+            cache_key = f"dict:{word}"
+            await redis_service.set(cache_key, entry.dict(), expire=86400)  # 24시간
+        except Exception as e:
+            logger.warning(f"redis server is not available! no cached in redis!")
 
     async def _generate_dictionary_entry(self, word: str) -> Optional[DictionaryEntry]:
         """AI를 통한 사전 정보 생성"""

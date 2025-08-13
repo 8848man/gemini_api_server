@@ -46,7 +46,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # 헬스체크 스크립트 생성
-RUN echo '#!/bin/sh\ncurl -f http://localhost:8080/api/v1/health || exit 1' > /app/healthcheck.sh && \
+RUN echo '#!/bin/sh\ncurl -f http://localhost:${PORT:-8080}/api/v1/health || exit 1' > /app/healthcheck.sh && \
     chmod +x /app/healthcheck.sh && \
     chown appuser:appuser /app/healthcheck.sh
 
