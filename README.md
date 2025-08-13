@@ -38,7 +38,7 @@ This server is designed for educational and enterprise applications requiring AI
 
 ```mermaid
 graph TB
-    Client[Client Applications] --> Nginx[Nginx Reverse Proxy]
+    Client[Client Applications] --> Hosting[Google Cloud Hosting] --> Nginx[Nginx Reverse Proxy]
     Nginx --> API[FastAPI Application]
     API --> Redis[(Redis Cache)]
     API --> Firestore[(Firestore Cache)]
@@ -53,7 +53,7 @@ graph TB
     Prometheus --> Grafana
     
     subgraph "Security Layers"
-        Auth[API Key / JWT Auth]
+        Auth[API Key / JWT Auth / Firebase Auth]
         RateLimit[Rate Limiting]
         Validation[Input Validation]
     end
