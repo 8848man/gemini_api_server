@@ -48,7 +48,6 @@ docker run -e FIREBASE_KEY_JSON="${env:FIREBASE_KEY_JSON}" -e GEMINI_API_KEY="$e
 # 도커 이미지 푸시(구글 클라우드로)
 docker push gcr.io/level-harbor-468300-g9/gemini-api:latest-1
 
-# 푸쉬된 이미지를 배포
 gcloud run deploy gemini-api --image gcr.io/level-harbor-468300-g9/gemini-api:latest-1 --platform managed --region asia-northeast3 --allow-unauthenticated
 
 # 구글 secret manager에 json 파일 등록
@@ -56,3 +55,5 @@ gcloud secrets create YOUR_SECRET_NAME --data-file=./config/firebase/service-acc
 
 # 푸쉬된 이미지를 클라우드 secret manager를 활용해 배포
 gcloud run deploy gemini-api --image gcr.io/level-harbor-468300-g9/gemini-api:latest-1 --platform managed --region asia-northeast3 --allow-unauthenticated --set-secrets FIREBASE_KEY_JSON=FIREBASE_KEY_JSON:latest
+
+gcloud run deploy gemini-api --image gcr.io/level-harbor-468300-g9/gemini-api:latest-2 --platform managed --region asia-northeast3 --allow-unauthenticated

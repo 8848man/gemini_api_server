@@ -61,7 +61,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD ["/app/healthcheck.sh"]
 
 # 앱 실행 커맨드 (uvicorn 직접 실행)
-# CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
 CMD ["sh", "-c", "python -m uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
 
 # ---------- Development stage ----------
