@@ -41,6 +41,7 @@ graph TB
     Client[Client Applications] --> Nginx[Nginx Reverse Proxy]
     Nginx --> API[FastAPI Application]
     API --> Redis[(Redis Cache)]
+    API --> Firestore[(Firestore Cache)]
     API --> Gemini[Google Gemini API]
     
     subgraph "Monitoring Stack"
