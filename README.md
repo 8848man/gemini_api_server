@@ -38,29 +38,47 @@ This server is designed for educational and enterprise applications requiring AI
 
 ```mermaid
 graph TB
-    Client[Client Applications] --> Hosting[Google Cloud Hosting] --> Nginx[Nginx Reverse Proxy]
-    Nginx --> API[FastAPI Application]
-    API --> Redis[(Redis Cache)]
-    API --> Firestore[(Firestore Cache)]
-    API --> Gemini[Google Gemini API]
-    
-    subgraph "Monitoring Stack"
-        Prometheus[Prometheus]
-        Grafana[Grafana]
+
+    %% --- 클라이언트 ---
+    subgraph Client[Flutter Client]
+        ChatUI[실시간 채팅 UI]
+        VoiceUI[AI 캐릭터 보이스 UI]
+        VocabUI[영단어 단어장 UI]
+        LoginUI[로그인 UI]
     end
-    
-    API --> Prometheus
-    Prometheus --> Grafana
-    
-    subgraph "Security Layers"
-        Auth[API Key / JWT Auth / Firebase Auth]
-        RateLimit[Rate Limiting]
-        Validation[Input Validation]
-    end
-    
-    Nginx --> Auth
-    Auth --> RateLimit
-    RateLimit --> Validation
+
+    %% --- 실시간 채팅 ---
+    ChatUI --> FS_Stream[Firestore Stream]
+    ChatUI --> FS_DB[Firebase Firestore]
+    ChatUI --> FS_Storage[Firebase Storage]
+
+    %% --- AI 캐릭터 보이스 ---
+    VoiceUI --> TTS_Service[TTS Service]
+    TTS_Service --> TTS_Proxy[TTS Proxy Server]
+    TTS_Proxy --> Supertone[Supertone API]
+
+    %% --- 단어장 기능 ---
+    VocabUI --> Gemini_Server[Gemini API Server]
+    Gemini_Server --> Gemini_API[Google Gemini API]
+    VocabUI --> FS_DB
+    VocabUI --> FB_Auth[Firebase Auth]
+
+    %% --- 로그인 기능 ---
+    LoginUI --> FB_Auth
+    LoginUI --> SecureStorage[Secure Storage]
+
+    %% --- Firebase 공통 ---
+    FS_DB[(Firebase Firestore)]
+    FS_Storage[(Firebase Storage)]
+    FB_Auth[(Firebase Auth)]
+
+    %% --- 스타일링 ---
+    classDef service fill=#fce5cd,stroke=#d35400,stroke-width=1px
+    classDef storage fill=#d9ead3,stroke=#6aa84f,stroke-width=1px
+    classDef api fill=#c9daf8,stroke=#3d85c6,stroke-width=1px
+
+    class TTS_Service,TTS_Proxy,Supertone,Gemini_Server,Gemini_API service
+    class FS_DB,FS_Storage,FB_Auth storage
 ```
 
 ### Core Components
