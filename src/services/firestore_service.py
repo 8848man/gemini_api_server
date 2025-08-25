@@ -1,6 +1,7 @@
 import logging
 import os
 import json
+from typing import Optional, List, Dict
 
 from google.cloud import firestore
 from google.oauth2 import service_account
@@ -59,5 +60,43 @@ class FirestoreService:
     async def save_word_data(self, word: str, data: dict):
         doc_ref = self.client.collection('master_voca').document(word)
         await doc_ref.set(data)
+
+    async def get_char_prompt(self, char_id: str) -> dict | None:
+        try:
+            doc_ref = self.client.collection('characters').document(char_id)
+            doc = await doc_ref.get()
+            if doc.exists:
+                return doc.to_dict()
+            return None
+        except Exception as e:
+            logger.warning(f"that character prompt may doesn't exist in collection or error occurred : {e}")
+
+    async def get_last_chats(self, room_id: str, chat_count: Optional[int] = None) -> Optional[List[Dict]]:
+        try:
+            chat_count = chat_count or 50  # 기본 50개
+            query = (
+                self.client.collection("chat_rooms")
+                .document(room_id)
+                .collection("chat")
+                .order_by("createdAt", direction=firestore.Query.DESCENDING)
+                .limit(chat_count)
+            )
+
+            # 비동기 호출
+            docs = [doc async for doc in query.stream()]
+
+            if not docs:
+                return None
+
+            # 최신순으로 받아왔으니, 오래된 → 최신 순서로 바꿔줌
+            chats = [doc.to_dict() for doc in docs]
+            chats.reverse()
+
+            return chats
+
+        except Exception as e:
+            logger.error(f"Error fetching chats: {e}", exc_info=True)
+            return None
+
 
 firestore_service = FirestoreService()
