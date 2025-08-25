@@ -1,4 +1,7 @@
+import os
+os.environ["ALLOWED_ORIGINS"] = '["*"]'  # 문자열 대신 실제 리스트처럼 파싱됨
 import pytest
+
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 
@@ -7,6 +10,7 @@ from src.services.gemini_service import GeminiService
 from src.services.dictionary_service import DictionaryService
 from src.models.chat import ChatRequest, ChatMessage
 from src.models.dictionary import EducationLevel
+from src.services.firestore_service import FirestoreService
 
 
 class TestRedisService:
@@ -306,3 +310,140 @@ class TestDictionaryService:
         entry = dictionary_service._parse_gemini_response("test", response_text)
         
         assert entry is None
+
+class TestFirestoreService:
+    @pytest.fixture
+    def service(self):
+        service = FirestoreService()
+        service.client = MagicMock()  # Firestore client를 mock 처리
+        return service
+
+
+    @pytest.mark.asyncio
+    async def test_get_word_data_exists(self, service):
+        # given
+        fake_doc = MagicMock()
+        fake_doc.exists = True
+        fake_doc.to_dict.return_value = {"word": "apple", "meaning": "사과"}
+
+        service.client.collection.return_value.document.return_value.get = AsyncMock(return_value=fake_doc)
+
+        # when
+        result = await service.get_word_data("apple")
+
+        # then
+        assert result == {"word": "apple", "meaning": "사과"}
+
+
+    @pytest.mark.asyncio
+    async def test_get_word_data_not_exists(self, service):
+        # given
+        fake_doc = MagicMock()
+        fake_doc.exists = False
+
+        service.client.collection.return_value.document.return_value.get = AsyncMock(return_value=fake_doc)
+
+        # when
+        result = await service.get_word_data("notfound")
+
+        # then
+        assert result is None
+
+
+    @pytest.mark.asyncio
+    async def test_save_word_data(self, service):
+        # given
+        mock_doc_ref = MagicMock()
+        service.client.collection.return_value.document.return_value = mock_doc_ref
+
+        # when
+        await service.save_word_data("banana", {"meaning": "바나나"})
+
+        # then
+        mock_doc_ref.set.assert_called_once_with({"meaning": "바나나"})
+
+
+    @pytest.mark.asyncio
+    async def test_get_char_prompt_exists(self, service):
+        # given
+        fake_doc = MagicMock()
+        fake_doc.exists = True
+        fake_doc.to_dict.return_value = {"id": "char001", "prompt": "용사"}
+
+        service.client.collection.return_value.document.return_value.get = AsyncMock(return_value=fake_doc)
+
+        # when
+        result = await service.get_char_prompt("char001")
+
+        # then
+        assert result == {"id": "char001", "prompt": "용사"}
+
+
+    @pytest.mark.asyncio
+    async def test_get_char_prompt_not_exists(self, service):
+        # given
+        fake_doc = MagicMock()
+        fake_doc.exists = False
+        service.client.collection.return_value.document.return_value.get = AsyncMock(return_value=fake_doc)
+
+        # when
+        result = await service.get_char_prompt("charX")
+
+        # then
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_get_last_chats_returns_messages(self, service):
+        # given
+        now = datetime.datetime.utcnow()
+        fake_docs = [
+            MagicMock(to_dict=lambda: {"msg": "third", "createdAt": now}),
+            MagicMock(to_dict=lambda: {"msg": "second", "createdAt": now - datetime.timedelta(seconds=10)}),
+            MagicMock(to_dict=lambda: {"msg": "first", "createdAt": now - datetime.timedelta(seconds=20)}),
+        ]
+
+        async def fake_stream():
+            for d in fake_docs:
+                yield d
+
+        query_mock = MagicMock()
+        query_mock.stream = fake_stream
+        (
+            service.client.collection.return_value
+            .document.return_value
+            .collection.return_value
+            .order_by.return_value
+            .limit.return_value
+        ) = query_mock
+
+        # when
+        result = await service.get_last_chats("room1", chat_count=3)
+
+        # then
+        assert len(result) == 3
+        # 오래된 순서대로 정렬됐는지 확인
+        assert [r["msg"] for r in result] == ["first", "second", "third"]
+
+
+    @pytest.mark.asyncio
+    async def test_get_last_chats_empty(self, service):
+        # given
+        async def fake_stream():
+            if False:  # 빈 generator
+                yield
+
+        query_mock = MagicMock()
+        query_mock.stream = fake_stream
+        (
+            service.client.collection.return_value
+            .document.return_value
+            .collection.return_value
+            .order_by.return_value
+            .limit.return_value
+        ) = query_mock
+
+        # when
+        result = await service.get_last_chats("room1", chat_count=5)
+
+        # then
+        assert result is None

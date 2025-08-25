@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from typing import List
 
@@ -39,9 +40,8 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: List[str] = config(
         "ALLOWED_ORIGINS",
-        default=["*"],
-        # default="http://localhost:3000,http://127.0.0.1:3000",
-        # cast=lambda v: [s.strip() for s in v.split(",")],
+        default="*",
+        cast=lambda v: json.loads(v) if isinstance(v, str) else v
     )
     ALLOWED_METHODS: List[str] = config(
         "ALLOWED_METHODS",
