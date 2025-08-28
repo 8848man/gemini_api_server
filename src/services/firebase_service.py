@@ -49,9 +49,7 @@ def initialize_firebase():
 
 def verify_firebase_token(token: str):
     try:
-        print(f'token is {token}')
         decoded_token = auth.verify_id_token(token)
-        print(f'decoded_token is {decoded_token}')
         return decoded_token  # dict containing uid, email, etc.
     except Exception as e:
         return None

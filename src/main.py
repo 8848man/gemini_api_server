@@ -65,8 +65,6 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """FastAPI 애플리케이션 생성 및 설정"""
 
-    # print('test001, created app')
-
     app = FastAPI(
         title="Gemini API Server",
         description="A FastAPI server for Gemini AI chat and dictionary services",
@@ -87,7 +85,8 @@ def create_app() -> FastAPI:
 
     # 커스텀 미들웨어 추가
     app.add_middleware(LoggingMiddleware)
-    app.add_middleware(RateLimitMiddleware)
+    # 기본적으로 redis 없음
+    # app.add_middleware(RateLimitMiddleware)
     app.add_middleware(AuthMiddleware)
 
     # 라우터 등록
