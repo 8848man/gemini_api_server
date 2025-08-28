@@ -5,6 +5,18 @@ from typing import List
 from decouple import config
 from pydantic_settings import BaseSettings
 
+def safe_json_loads(value: str, default):
+    try:
+        return json.loads(value) if value else default
+    except (json.JSONDecodeError, TypeError):
+        return default
+
+def safe_split(value: str, default):
+    try:
+        return [s.strip() for s in value.split(",")] if value else default
+    except Exception:
+        return default
+
 
 class Settings(BaseSettings):
     # API Configuration
@@ -37,21 +49,23 @@ class Settings(BaseSettings):
         "DUPLICATE_REQUEST_WINDOW_MINUTES", default=10, cast=int
     )
 
-    # CORS
+
     ALLOWED_ORIGINS: List[str] = config(
         "ALLOWED_ORIGINS",
-        default="*",
-        cast=lambda v: json.loads(v) if isinstance(v, str) else v
+        default='["*"]',
+        cast=lambda v: safe_json_loads(v, ["*"])
     )
+
     ALLOWED_METHODS: List[str] = config(
         "ALLOWED_METHODS",
         default="GET,POST,PUT,DELETE,OPTIONS",
-        cast=lambda v: [s.strip() for s in v.split(",")],
+        cast=lambda v: safe_split(v, ["GET", "POST", "PUT", "DELETE", "OPTIONS"])
     )
+
     ALLOWED_HEADERS: List[str] = config(
         "ALLOWED_HEADERS",
         default="*",
-        cast=lambda v: [s.strip() for s in v.split(",")],
+        cast=lambda v: safe_split(v, ["*"])
     )
 
     # Logging
@@ -69,3 +83,4 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+

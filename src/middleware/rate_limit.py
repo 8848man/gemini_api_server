@@ -6,7 +6,7 @@ from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.core.config import get_settings
-from src.services.redis_service import redis_service
+from src.services.redis_service_wrapper import redis_service
 from src.utils.security import generate_request_hash
 
 logger = logging.getLogger(__name__)
@@ -21,13 +21,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.concurrent_requests: Dict[str, int] = {}
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        # Redis 연결 확인
-        if not redis_service.redis:
-            try:
-                await redis_service.connect()
-            except Exception as e:
-                logger.warning(f"Redis not available, rate limiting disabled: {e}")
-                return await call_next(request)
+        await redis_service.connect()
 
         client_id = self._get_client_identifier(request)
         

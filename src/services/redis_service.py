@@ -2,6 +2,7 @@ import json
 import logging
 from typing import Optional, Any
 from datetime import datetime, timedelta
+from src.core.interfaces.i_redis_service import IRedisService
 
 import redis.asyncio as aioredis
 from redis.exceptions import RedisError
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-class RedisService:
+class RedisService(IRedisService):
     """Redis 서비스 클래스"""
     
     def __init__(self):
@@ -157,6 +158,3 @@ class RedisService:
             logger.error(f"Redis SISMEMBER error for key {key}: {e}")
             return False
 
-
-# 전역 Redis 서비스 인스턴스
-redis_service = RedisService()

@@ -8,7 +8,7 @@ from google.generativeai import GenerativeModel
 
 from src.core.config import get_settings
 from src.models.dictionary import DictionaryEntry, DictionaryResponse, EducationLevel
-from src.services.redis_service import redis_service
+from src.services.redis_service_wrapper import redis_service
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

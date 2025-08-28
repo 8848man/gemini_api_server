@@ -40,10 +40,15 @@ docker build -t gcr.io/level-harbor-468300-g9/gemini-api:latest-1 .
 # 도커 이미지 푸쉬 전 로컬 테스트
 docker run -e PORT=8080 -p 8080:8080 gcr.io/level-harbor-468300-g9/gemini-api:latest-1
 
+# firebase key의 줄바꿈 에러를 포함해서 테스트
+docker run -d --name "gemini-api-server" -v ${PWD}/config/firebase:/app/config/firebase -e GOOGLE_APPLICATION_CREDENTIALS=/app/config/firebase/service-account.json -e GEMINI_API_KEY=$env:GEMINI_API_KEY -p 8080:8080 gcr.io/level-harbor-468300-g9/gemini-api:latest-8
+
+docker run -v ${PWD}/config/firebase:/app/config/firebase -e GOOGLE_APPLICATION_CREDENTIALS=/app/config/firebase/service-account.json -e GEMINI_API_KEY=$env:GEMINI_API_KEY -p 8080:8080 gcr.io/level-harbor-468300-g9/gemini-api:latest-8
+
 # FIREBASE_KEY_JSON을 도커 환경변수에 넣기 위해 줄바꿈등 필터링
 
 # 도커 이미지 푸쉬 전 로컬 테스트 (환경변수 포함)
-docker run -e FIREBASE_KEY_JSON="${env:FIREBASE_KEY_JSON}" -e GEMINI_API_KEY="$env:GEMINI_API_KEY" -p 8080:8080 gcr.io/level-harbor-468300-g9/gemini-api:latest-1
+docker run -e FIREBASE_KEY_JSON="${env:FIREBASE_KEY_JSON}" -e GEMINI_API_KEY="${env:GEMINI_API_KEY}" -p 8080:8080 gcr.io/level-harbor-468300-g9/gemini-api:latest-1
 
 # 도커 이미지 푸시(구글 클라우드로)
 docker push gcr.io/level-harbor-468300-g9/gemini-api:latest-1
