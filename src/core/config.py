@@ -1,14 +1,27 @@
+import json
 from functools import lru_cache
 from typing import List
 
 from decouple import config
 from pydantic_settings import BaseSettings
 
+def safe_json_loads(value: str, default):
+    try:
+        return json.loads(value) if value else default
+    except (json.JSONDecodeError, TypeError):
+        return default
+
+def safe_split(value: str, default):
+    try:
+        return [s.strip() for s in value.split(",")] if value else default
+    except Exception:
+        return default
+
 
 class Settings(BaseSettings):
     # API Configuration
     API_HOST: str = config("API_HOST", default="0.0.0.0")
-    API_PORT: int = config("API_PORT", default=8000, cast=int)
+    API_PORT: int = config("API_PORT", default=8080, cast=int)
     API_WORKERS: int = config("API_WORKERS", default=1, cast=int)
     DEBUG: bool = config("DEBUG", default=False, cast=bool)
 
@@ -20,7 +33,9 @@ class Settings(BaseSettings):
     JWT_EXPIRATION_HOURS: int = config("JWT_EXPIRATION_HOURS", default=24, cast=int)
 
     # Google Gemini API
-    GEMINI_API_KEY: str = config("GEMINI_API_KEY", default="")
+    # GEMINI_API_KEY: str = config("GEMINI_API_KEY", default="")
+    # 환경변수를 우선 적용하기위해 설정
+    GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = config("GEMINI_MODEL", default="gemini-2.0-flash")
 
     # Redis Configuration
@@ -34,26 +49,31 @@ class Settings(BaseSettings):
         "DUPLICATE_REQUEST_WINDOW_MINUTES", default=10, cast=int
     )
 
-    # CORS
+
     ALLOWED_ORIGINS: List[str] = config(
         "ALLOWED_ORIGINS",
-        default="http://localhost:3000,http://127.0.0.1:3000",
-        cast=lambda v: [s.strip() for s in v.split(",")],
+        default='["*"]',
+        cast=lambda v: safe_json_loads(v, ["*"])
     )
+
     ALLOWED_METHODS: List[str] = config(
         "ALLOWED_METHODS",
         default="GET,POST,PUT,DELETE,OPTIONS",
-        cast=lambda v: [s.strip() for s in v.split(",")],
+        cast=lambda v: safe_split(v, ["GET", "POST", "PUT", "DELETE", "OPTIONS"])
     )
+
     ALLOWED_HEADERS: List[str] = config(
         "ALLOWED_HEADERS",
         default="*",
-        cast=lambda v: [s.strip() for s in v.split(",")],
+        cast=lambda v: safe_split(v, ["*"])
     )
 
     # Logging
     LOG_LEVEL: str = config("LOG_LEVEL", default="INFO")
     LOG_FILE: str = config("LOG_FILE", default="logs/app.log")
+
+    # Firebase 인증 경로
+    GOOGLE_APPLICATION_CREDENTIALS: str | None = None
 
     class Config:
         env_file = ".env"
@@ -63,3 +83,4 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+

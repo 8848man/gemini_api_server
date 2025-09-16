@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 PUBLIC_PATH_PREFIXES = [
     "/docs",
     "/redoc",
+    "/favicon.ico",
     "/openapi.json",
     "/api/v1/health",
     "/metrics",
@@ -36,6 +37,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         # OPTIONS 요청은 무조건 인증 생략
         if request.method == "OPTIONS":
+            return await call_next(request)
+
+        if request.url.path == "/favicon.ico":
             return await call_next(request)
 
         # 공개 경로는 인증 생략

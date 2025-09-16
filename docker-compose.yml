@@ -9,10 +9,10 @@ services:
       target: production
     container_name: gemini-api-server
     ports:
-      - "8000:8000"
+      - "8080:8080"
     environment:
       - API_HOST=0.0.0.0
-      - API_PORT=8000
+      - API_PORT=8080
       - DEBUG=False
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
@@ -22,9 +22,13 @@ services:
       - LOG_LEVEL=INFO
       - REQUESTS_PER_MINUTE=60
       - MAX_CONCURRENT_REQUESTS=3
+      - ALLOWED_ORIGINS='["*"]'
+      - ALLOWED_METHODS='["GET","POST","PUT","DELETE","OPTIONS"]'
+      - ALLOWED_HEADERS='["*"]'
     volumes:
       - ./logs:/app/logs
       - ./data:/app/data
+      - ./config/firebase:/app/config/firebase
     depends_on:
       - redis
     networks:

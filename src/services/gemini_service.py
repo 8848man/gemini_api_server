@@ -46,7 +46,6 @@ class GeminiService:
         """채팅 응답 생성"""
         if not self.model:
             raise RuntimeError("Gemini model not initialized")
-
         try:
             # 대화 히스토리 구성
             conversation_history = self._build_conversation_history(
@@ -56,10 +55,8 @@ class GeminiService:
 
             # Gemini API 호출
             response = await self._call_gemini_api(conversation_history)
-            
             # 응답 처리
             response_text = response.text if response else "죄송합니다. 응답을 생성할 수 없습니다."
-            
             # 신뢰도 점수 계산 (간단한 휴리스틱)
             confidence_score = self._calculate_confidence_score(response)
 

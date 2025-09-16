@@ -19,7 +19,7 @@ os.environ.update({
 })
 
 from src.main import create_app
-from src.services.redis_service import redis_service
+from src.services.redis_service_wrapper import redis_service
 from src.services.gemini_service import gemini_service
 from src.services.dictionary_service import dictionary_service
 

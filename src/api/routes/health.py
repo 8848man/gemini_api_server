@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from src.models.common import HealthCheckResponse
-from src.services.redis_service import redis_service
+from src.services.redis_service_wrapper import redis_service
 
 router = APIRouter()
 
